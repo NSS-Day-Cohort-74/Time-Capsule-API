@@ -1,0 +1,108 @@
+User {
+    id serial PRIMARY KEY
+    username varchar(50) UNIQUE NOT NULL
+    email varchar(255) UNIQUE NOT NULL
+    password varchar(255) NOT NULL
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+    last_login timestamp
+}
+
+UserProfile {
+    id serial PRIMARY KEY
+    user_id integer REFERENCES User(id)
+    bio text
+    location point
+    created_capsules_count integer DEFAULT 0
+    discovered_capsules_count integer DEFAULT 0
+    verified_predictions_count integer DEFAULT 0
+}
+
+TimeCapsule {
+    id serial PRIMARY KEY
+    creator_id integer REFERENCES UserProfile(user_id)
+    title varchar(255) NOT NULL
+    description text
+    opening_date timestamp NOT NULL
+    location point NOT NULL
+    capsule_type enum('public', 'private', 'group')
+    status enum('pending', 'open', 'locked')
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
+
+CapsuleType {
+    id PRIMARY KEY
+    name varchar(50) UNIQUE NOT NULL
+}
+
+CapsuleStatus {
+    id PRIMARY KEY
+    name varchar(50) UNIQUE NOT NULL
+}
+
+TimeCapsuleContent {
+    id serial PRIMARY KEY
+    capsule_id integer REFERENCES TimeCapsule(id)
+    content_type enum('story', 'prediction', 'memory')
+    content text NOT NULL
+    media_url varchar(255)
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
+
+StoryNode {
+    id serial PRIMARY KEY
+    capsule_content_id integer REFERENCES TimeCapsuleContent(id)
+    parent_node_id integer REFERENCES StoryNode(id)
+    content text NOT NULL
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
+
+StoryChoice {
+    id serial PRIMARY KEY
+    node_id integer REFERENCES StoryNode(id)
+    choice_text text NOT NULL
+    next_node_id integer REFERENCES StoryNode(id)
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
+
+Prediction {
+    id serial PRIMARY KEY
+    capsule_content_id integer REFERENCES TimeCapsuleContent(id)
+    prediction_text text NOT NULL
+    category varchar(50)
+    verification_status enum('pending', 'verified', 'disproved')
+    verification_date timestamp
+    verification_user_id integer REFERENCES UserProfile(user_id)
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
+
+DiscussionThread {
+    id serial PRIMARY KEY
+    capsule_id integer REFERENCES TimeCapsule(id)
+    title varchar(255) NOT NULL
+    created_by integer REFERENCES UserProfile(user_id)
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
+
+DiscussionComment {
+    id serial PRIMARY KEY
+    thread_id integer REFERENCES DiscussionThread(id)
+    content text NOT NULL
+    author_id integer REFERENCES UserProfile(user_id)
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
+
+AccessControl {
+    id serial PRIMARY KEY
+    capsule_id integer REFERENCES TimeCapsule(id)
+    user_id integer REFERENCES UserProfile(user_id)
+    permission_level enum('owner', 'viewer', 'contributor')
+    expires_at timestamp
+}
+
+LocationZone {
+    id serial PRIMARY KEY
+    name varchar(255) NOT NULL
+    boundary geometry(Polygon)
+    restrictions jsonb
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP
+}
