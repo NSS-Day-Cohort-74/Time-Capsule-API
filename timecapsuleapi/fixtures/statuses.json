@@ -1,0 +1,37 @@
+[
+    {
+      "model": "timecapsuleapi.capsulestatus",
+      "pk": 1,
+      "fields": {
+        "name": "Draft"
+      }
+    },
+    {
+      "model": "timecapsuleapi.capsulestatus",
+      "pk": 2,
+      "fields": {
+        "name": "Pending Review"
+      }
+    },
+    {
+      "model": "timecapsuleapi.capsulestatus",
+      "pk": 3,
+      "fields": {
+        "name": "Published"
+      }
+    },
+    {
+      "model": "timecapsuleapi.capsulestatus",
+      "pk": 4,
+      "fields": {
+        "name": "Archived"
+      }
+    },
+    {
+      "model": "timecapsuleapi.capsulestatus",
+      "pk": 5,
+      "fields": {
+        "name": "Deleted"
+      }
+    }
+]

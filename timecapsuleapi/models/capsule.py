@@ -9,5 +9,5 @@ class TimeCapsule(models.Model):
     opening_date = models.DateTimeField()
     location_x = models.FloatField()
     location_y = models.FloatField()
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
