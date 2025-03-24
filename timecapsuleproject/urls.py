@@ -1,9 +1,14 @@
 from django.urls import include, path
 from rest_framework import routers
-from timecapsuleapi.views import register_user, login_user, CapsuleView
+from timecapsuleapi.views import (
+    register_user, login_user, CapsuleView,
+    CapsuleStatusView, CapsuleTypeView
+)
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'capsules', CapsuleView, 'capsule')
+router.register(r'capsulestatuses', CapsuleStatusView, 'capsulestatus')
+router.register(r'capsuletypes', CapsuleTypeView, 'capsuletype')
 
 urlpatterns = [
     path('', include(router.urls)),

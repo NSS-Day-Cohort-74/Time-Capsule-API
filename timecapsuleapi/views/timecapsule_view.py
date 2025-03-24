@@ -25,7 +25,7 @@ class CapsuleView(ViewSet):
             return Response({"reason": "Invalid capsule status id sent"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            capsule_type = CapsuleType.objects.get(pk=request.data["capsule_type"])
+            capsule_type = CapsuleType.objects.get(pk=request.data["type"])
             capsule.type = capsule_type
         except CapsuleType.DoesNotExist:
             return Response({"reason": "Invalid capsule type id sent"}, status=status.HTTP_404_NOT_FOUND)
@@ -33,7 +33,7 @@ class CapsuleView(ViewSet):
 
         capsule.title = request.data["title"]
         capsule.descriptions = request.data["description"]
-        capsule.opening_date = request.data["when_to_open"]
+        capsule.opening_date = request.data["openingDate"]
         capsule.location_x = request.data["x"]
         capsule.location_y = request.data["y"]
 
@@ -104,13 +104,12 @@ class CapsuleView(ViewSet):
         Returns:
             Response -- JSON serialized array
         """
-        # try:
-        #     voids = Void.objects.all()
-        #     serializer = VoidSerializer(voids, many=True)
-        #     return Response(serializer.data, status=status.HTTP_200_OK)
-        # except Exception as ex:
-        #     return HttpResponseServerError(ex)
-        pass
+        try:
+            capsules = TimeCapsule.objects.all()
+            serializer = CapsuleSerializer(capsules, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as ex:
+            return HttpResponseServerError(ex)
 
 
 class CapsuleSerializer(serializers.ModelSerializer):
@@ -120,7 +119,6 @@ class CapsuleSerializer(serializers.ModelSerializer):
         model = TimeCapsule
         fields = (
             "id",
-            "creator",
             "status",
             "type",
             "title",
