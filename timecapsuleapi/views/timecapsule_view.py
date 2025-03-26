@@ -1,8 +1,11 @@
+import logging
 from django.http import HttpResponseServerError
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from timecapsuleapi.models import TimeCapsule, UserProfile, CapsuleStatus, CapsuleType
+
+logger = logging.getLogger(__name__)
 
 
 class CapsuleView(ViewSet):
@@ -22,20 +25,25 @@ class CapsuleView(ViewSet):
             capsule_status = CapsuleStatus.objects.get(pk=request.data["status"])
             capsule.status = capsule_status
         except CapsuleStatus.DoesNotExist:
-            return Response({"reason": "Invalid capsule status id sent"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"reason": "Invalid capsule status id sent"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         try:
             capsule_type = CapsuleType.objects.get(pk=request.data["type"])
             capsule.type = capsule_type
         except CapsuleType.DoesNotExist:
-            return Response({"reason": "Invalid capsule type id sent"}, status=status.HTTP_404_NOT_FOUND)
-
+            return Response(
+                {"reason": "Invalid capsule type id sent"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         capsule.title = request.data["title"]
-        capsule.descriptions = request.data["description"]
-        capsule.opening_date = request.data["openingDate"]
-        capsule.location_x = request.data["x"]
-        capsule.location_y = request.data["y"]
+        capsule.descriptions = request.data["descriptions"]
+        capsule.opening_date = request.data["opening_date"]
+        capsule.location_x = request.data["location_x"]
+        capsule.location_y = request.data["location_y"]
 
         try:
             capsule.save()
@@ -64,19 +72,45 @@ class CapsuleView(ViewSet):
         Returns:
             Response -- Empty body with 204 status code
         """
-        # try:
-        #     void = Void.objects.get(pk=pk)
-        #     void.sample_name = request.data["name"]
-        #     void.sample_description = request.data["description"]
-        #     void.save()
-        # except Void.DoesNotExist:
-        #     return Response(None, status=status.HTTP_404_NOT_FOUND)
+        try:
+            timecapsule = TimeCapsule.objects.get(pk=pk)
 
-        # except Exception as ex:
-        #     return HttpResponseServerError(ex)
+            try:
+                capsule_status = CapsuleStatus.objects.get(pk=request.data["status"])
+                timecapsule.status = capsule_status
+            except CapsuleStatus.DoesNotExist:
+                return Response(
+                    {"reason": "Invalid capsule status id sent"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        # return Response(None, status=status.HTTP_204_NO_CONTENT)
-        pass
+            try:
+                capsule_type = CapsuleType.objects.get(pk=request.data["type"])
+                timecapsule.type = capsule_type
+            except CapsuleType.DoesNotExist:
+                return Response(
+                    {"reason": "Invalid capsule type id sent"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            timecapsule.title = request.data["title"]
+            timecapsule.descriptions = request.data["descriptions"]
+            timecapsule.opening_date = request.data["opening_date"]
+            timecapsule.location_x = request.data["location_x"]
+            timecapsule.location_y = request.data["location_y"]
+
+            timecapsule.save()
+        except TimeCapsule.DoesNotExist:
+            return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as ex:
+            logger.error(
+                f"Error updating TimeCapsule with id {pk}: {str(ex)}",
+                exc_info=True,  # This includes the full traceback
+            )
+            return HttpResponseServerError(ex)
+
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
 
     def destroy(self, request, pk=None):
         """Handle DELETE requests for a single item
@@ -84,19 +118,18 @@ class CapsuleView(ViewSet):
         Returns:
             Response -- 200, 404, or 500 status code
         """
-        # try:
-        #     void = Void.objects.get(pk=pk)
-        #     void.delete()
-        #     return Response(None, status=status.HTTP_204_NO_CONTENT)
+        try:
+            capsule = TimeCapsule.objects.get(pk=pk)
+            capsule.delete()
+            return Response(None, status=status.HTTP_204_NO_CONTENT)
 
-        # except Void.DoesNotExist as ex:
-        #     return Response({"message": ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+        except TimeCapsule.DoesNotExist as ex:
+            return Response({"message": ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
-        # except Exception as ex:
-        #     return Response(
-        #         {"message": ex.args[0]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        #     )
-        pass
+        except Exception as ex:
+            return Response(
+                {"message": ex.args[0]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def list(self, request):
         """Handle GET requests for all items
@@ -114,6 +147,11 @@ class CapsuleView(ViewSet):
 
 class CapsuleSerializer(serializers.ModelSerializer):
     """JSON serializer"""
+
+    opening_date = serializers.SerializerMethodField()
+
+    def get_opening_date(self, obj):
+        return obj.opening_date.strftime("%Y-%m-%d")
 
     class Meta:
         model = TimeCapsule
